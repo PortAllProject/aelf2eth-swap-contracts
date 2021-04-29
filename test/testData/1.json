@@ -1,0 +1,19 @@
+{
+  "root": "0x1d372868498e8a6b3cf884cab69afbab0734516ea7e55905d1464d804c0c58a1",
+  "receipts": [
+    {
+      "receipt_index": 0,
+      "receipt_amount": 100,
+      "receipt_target_address": "0x2D4E11221b960E4Ed6D0D2358e26b9c89DfF404a",
+      "receipt_index_hash": "0xaf5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "receipts_path": {
+        "receipt_path_hash": [
+          "0xf45f7509ad563085b07a8691fb275bf52a77650f1c3d75cb1cc5e5356a380dc3"
+        ],
+        "receipt_path_isLeft": [
+          false
+        ]
+      }
+    }
+  ]
+}

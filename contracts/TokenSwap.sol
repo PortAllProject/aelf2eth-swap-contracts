@@ -147,12 +147,13 @@ contract TokenSwap {
             ledger[_swapId][_merklePathInfo.uniqueId];
         require(swapAmouts.receiver == address(0), "already claimed");
         SwapInfo storage swapInfo = swapInfos[_swapId];
-        bytes32 leafHash =
+        (bytes32 leafHash,,) =
             computeLeafHash(
                 _amount,
                 _merklePathInfo.uniqueId,
-                swapInfo,
-                _receiverAddress
+                swapInfo.originTokenSizeInByte,
+                _receiverAddress,
+                swapInfo.isBigEndian
             );
         require(
             merkleTreeValidtator.merkleProof(
@@ -267,17 +268,18 @@ contract TokenSwap {
     function computeLeafHash(
         uint256 _amount,
         bytes32 _uniqueId,
-        SwapInfo storage _swapInfo,
-        address _receiverAddress
-    ) private view returns (bytes32) {
-        bytes32 hashFromAmount =
+        uint256 _originTokenSizeInByte,
+        address _receiverAddress,
+        bool _isBigEndian
+    ) public pure returns (bytes32 _leafHash, bytes32 _hashFromAmount, bytes32 _hashFromAddress) {
+        _hashFromAmount =
             getHashTokenAmountData(
                 _amount,
-                _swapInfo.originTokenSizeInByte,
-                _swapInfo.isBigEndian
+                _originTokenSizeInByte,
+                _isBigEndian
             );
-        bytes32 hashFromAddress = sha256(abi.encodePacked(_receiverAddress));
-        return sha256(abi.encode(hashFromAmount, hashFromAddress, _uniqueId));
+        _hashFromAddress = sha256(abi.encodePacked(_receiverAddress));
+        _leafHash = sha256(abi.encode(_hashFromAmount, _hashFromAddress, _uniqueId));
     }
 
     function getHashTokenAmountData(

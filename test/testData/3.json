@@ -1,0 +1,53 @@
+{
+  "root": "0x8c648aaec5bc2fd24c00b9c0bc42ab021df748da7202d65f00d7c51e2cccf6ac",
+  "receipts": [
+    {
+      "receipt_index": 0,
+      "receipt_amount": 100,
+      "receipt_target_address": "0x2D4E11221b960E4Ed6D0D2358e26b9c89DfF404a",
+      "receipt_index_hash": "0xaf5570f5a1810b7af78caf4bc70a660f0df51e42baf91d4de5b2328de0e83dfc",
+      "receipts_path": {
+        "receipt_path_hash": [
+          "0x064af6f9592922fbfc90807db0b413aa9c9eae9a01e7a2c231deb791ff1a7d57",
+          "0xa17a64baae6ba8253fbe8248615f7b6019834f4291f2040434303d61201e2c7e"
+        ],
+        "receipt_path_isLeft": [
+          false,
+          false
+        ]
+      }
+    },
+    {
+      "receipt_index": 1,
+      "receipt_amount": 101,
+      "receipt_target_address": "0x2D4E11221b960E4Ed6D0D2358e26b9c89DfF404a",
+      "receipt_index_hash": "0x7c9fa136d4413fa6173637e883b6998d32e1d675f88cddff9dcbcf331820f4b8",
+      "receipts_path": {
+        "receipt_path_hash": [
+          "0xf45f7509ad563085b07a8691fb275bf52a77650f1c3d75cb1cc5e5356a380dc3",
+          "0xa17a64baae6ba8253fbe8248615f7b6019834f4291f2040434303d61201e2c7e"
+        ],
+        "receipt_path_isLeft": [
+          true,
+          false
+        ]
+      }
+    },
+    {
+      "receipt_index": 2,
+      "receipt_amount": 102,
+      "receipt_target_address": "0x2D4E11221b960E4Ed6D0D2358e26b9c89DfF404a",
+      "receipt_index_hash": "0xd86e8112f3c4c4442126f8e9f44f16867da487f29052bf91b810457db34209a4",
+      "receipts_path": {
+        "receipt_path_hash": [
+          "0x97299a8084c95fc0113ab6e4e89cb5e3df93409b23c8b5b901fa33528570b198",
+          "0x52d761c2236e12996cc880626016e70a3badd9808e2b3fb0fe76ed10e68c4192"
+        ],
+        "receipt_path_isLeft": [
+          false,
+          true
+        ]
+      }
+    }
+  ]
+}
