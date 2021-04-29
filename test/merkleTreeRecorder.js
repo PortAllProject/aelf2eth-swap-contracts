@@ -24,7 +24,7 @@ contract('merkle tree recorder', (accounts) => {
         let merkleTreeRecordedEvent = (await testInstance.getPastEvents('MerkleTreeRecorded'))[0].returnValues;
         assert.equal(merkleTreeRecordedEvent.recorderId, 0, "invalid MerkleTreeRecorded event info");
         assert.equal(merkleTreeRecordedEvent.lastLeafIndex, 0, "invalid MerkleTreeRecorded event info");
-        let merkleTree = await testInstance.getMerkleTree(0,0);
+        let merkleTree = await testInstance.getLeafLocatedMerkleTree(0,0);
         assert.equal(merkleTree.firstLeafIndex, 0, "first leadIndex shoule be 0");
         assert.equal(merkleTree.lastLeafIndex, 0, "last leadIndex shoule be 0");
         assert.equal(merkleTree.merkleTreeRoot, merkleTreeRoot1, "merkle tree root is not right");
@@ -60,12 +60,19 @@ contract('merkle tree recorder', (accounts) => {
         await testInstance.recordMerkleTree(0, 7, merkleTreeRoot2);
         let lastLeafIndex = await testInstance.getLastRecordedLeafIndex(0);
         assert.equal(lastLeafIndex, 7, "lastLeafIndex should be 6");
-        unsatisfiedMerkleTree = await testInstance.satisfiedMerkleTrees(0,0);
-        assert.equal(unsatisfiedMerkleTree.merkleTreeRoot, merkleTreeRoot2, "merkle tree root is not right");
+        let satisfiedMerkleTree = await testInstance.satisfiedMerkleTrees(0,0);
+        assert.equal(satisfiedMerkleTree.merkleTreeRoot, merkleTreeRoot2, "merkle tree root is not right");
 
         const merkleTreeRoot3 = "0xca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb";
-        await testInstance.recordMerkleTree(0, 8, merkleTreeRoot3);
-        unsatisfiedMerkleTree = await testInstance.unSatisfiedMerkleTrees(0,0);
+        await testInstance.recordMerkleTree(0, 9, merkleTreeRoot3);
+        unsatisfiedMerkleTree = await testInstance.unSatisfiedMerkleTrees(0,1);
         assert.equal(unsatisfiedMerkleTree.merkleTreeRoot, merkleTreeRoot3, "unsatisfied merkle tree info is not right");
+        try {
+            await testInstance.getMerkleTree(0, 8);
+            assert.fail("The transaction should have thrown an error");
+        }
+        catch (err) {
+            assert.include(err.message, "tree not recorded", "The error message should contain 'tree not recorded'");
+        }
     });
 });

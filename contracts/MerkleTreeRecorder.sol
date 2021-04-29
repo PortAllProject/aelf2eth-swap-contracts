@@ -115,7 +115,7 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         emit MerkleTreeRecorded(_recorderId, _lastLeafIndex);
     }
 
-    function GetLeafLocatedMerkleTree(uint256 _recorderId, uint256 _leafIndex)
+    function getLeafLocatedMerkleTree(uint256 _recorderId, uint256 _leafIndex)
         public
         view
         merkleTreeGenerated(_recorderId)
@@ -124,7 +124,7 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         uint256 lastRecordLeafIndex = lastRecordedLeafIndex[_recorderId].sub(1);
         require(lastRecordLeafIndex >= _leafIndex, "not recorded yet");
         return
-            GetMerkleTreeByDefaultIndex(
+            getMerkleTreeByDefaultIndex(
                 _recorderId,
                 _leafIndex,
                 lastRecordLeafIndex,
@@ -141,7 +141,7 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         uint256 lastRecordLeafIndex = lastRecordedLeafIndex[_recorderId].sub(1);
         require(lastRecordLeafIndex >= _leafIndex, "not recorded yet");
         return
-            GetMerkleTreeByDefaultIndex(
+            getMerkleTreeByDefaultIndex(
                 _recorderId,
                 _leafIndex,
                 _leafIndex,
@@ -183,7 +183,7 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         return lastRecordedLeafIndex[_recorderId].sub(1);
     }
 
-    function GetMerkleTreeByDefaultIndex(
+    function getMerkleTreeByDefaultIndex(
         uint256 _recorderId,
         uint256 _leafIndex,
         uint256 _defaultIndex,
