@@ -1,12 +1,3 @@
-const dotenv = require('dotenv');
-const result = dotenv.config();
-if (result.error) {
-  throw result.error;
-}
-//console.log(result.parsed);
-
-var HDWalletProvider = require("truffle-hdwallet-provider");
-
 var keys = [process.env.kovan_key0, process.env.kovan_key1, process.env.kovan_key2, process.env.kovan_key3];
 //var mnemonic_mainnet = process.env.mnemonic_mainnet;
 module.exports = {
@@ -38,7 +29,6 @@ module.exports = {
     solc: {
       version: "0.6.12",
       settings: {
-        //evmVersion: 'byzantium', // Default: "petersburg"
         optimizer: {
           enabled: true,
           runs: 200

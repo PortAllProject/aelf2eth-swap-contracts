@@ -1,12 +1,14 @@
 pragma solidity ^0.6.12;
 
 import "../interfaces/IMerkleTreeValidate.sol";
+import "../interfaces/ITakeToken.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 pragma experimental ABIEncoderV2;
 
-contract TokenSwap {
+contract TokenSwap is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -70,8 +72,9 @@ contract TokenSwap {
         bool _isBigEndian,
         address[] calldata _tokenList,
         uint256[] calldata _depositAmount,
+        address[] calldata _depositAddress,
         SwapRatio[] memory _swapRatio
-    ) external returns (bytes32) {
+    ) external onlyOwner returns (bytes32) {
         require(
             address(merkleTreeValidtator) != address(0),
             "merkleTreeValidtator has not been initialized"
@@ -110,11 +113,20 @@ contract TokenSwap {
             if (_depositAmount[i] == 0) {
                 continue;
             }
-            IERC20(_tokenList[i]).safeTransferFrom(
-                address(msg.sender),
-                address(this),
-                _depositAmount[i]
-            );
+            if (_depositAddress[i] == msg.sender)
+            {
+                IERC20(_tokenList[i]).safeTransferFrom(
+                    address(msg.sender),
+                    address(this),
+                    _depositAmount[i]
+                );
+            }
+            else
+            {
+                ITakeToken(_depositAddress[i]).takeToken(
+                    _depositAmount[i]
+                );
+            }
         }
         swapInfos[swapHashId] = newSwapInfo;
         emit SwapPairAdded(swapHashId);
@@ -205,15 +217,25 @@ contract TokenSwap {
     function deposit(
         bytes32 _swapId,
         address _token,
+        address _depositAddress,
         uint256 _amount
-    ) external {
+    ) external onlyOwner {
         SwapPair storage swapPair = getSwapPair(_swapId, _token);
         swapPair.depositAmount = swapPair.depositAmount.add(_amount);
-        IERC20(_token).safeTransferFrom(
-            address(msg.sender),
-            address(this),
-            _amount
-        );
+        if (msg.sender == _depositAddress)
+        {
+            IERC20(_token).safeTransferFrom(
+                address(msg.sender),
+                address(this),
+                _amount
+            );
+        }
+        else
+        {
+            ITakeToken(_depositAddress).takeToken(
+                _amount
+            );
+        }
     }
 
     function withdraw(

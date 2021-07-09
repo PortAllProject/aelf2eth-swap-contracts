@@ -62,6 +62,7 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         merkleTreeRecorderCount = currentRecordCount.add(1);
     }
 
+    // TODO: Pass report here, verify signatures then record merkle tree
     function recordMerkleTree(
         uint256 _recorderId,
         uint256 _lastLeafIndex,
