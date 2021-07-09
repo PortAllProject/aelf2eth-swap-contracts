@@ -2,6 +2,7 @@ pragma solidity ^0.6.12;
 
 import "../interfaces/IMerkleTreeValidate.sol";
 import "../interfaces/IRecordMerkleTree.sol";
+import "../interfaces/IReportValidate.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
 pragma experimental ABIEncoderV2;
@@ -29,10 +30,10 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
     mapping(uint256 => uint256) public satisfiedMerkleTreeCount;
 
     mapping(uint256 => mapping(uint256 => MerkleTree))
-        public satisfiedMerkleTrees;
+    public satisfiedMerkleTrees;
 
     mapping(uint256 => mapping(uint256 => MerkleTree))
-        public unSatisfiedMerkleTrees;
+    public unSatisfiedMerkleTrees;
 
     bytes32 constant invalidHash = bytes32(0);
 
@@ -51,9 +52,15 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         _;
     }
 
+    IReportValidate public reportValidator;
+
+    constructor(address _reportValidator) public {
+        reportValidator = IReportValidate(_reportValidator);
+    }
+
     function createRecorder(address _admin, uint256 _maximalLeafCount)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         uint256 currentRecordCount = merkleTreeRecorderCount;
         recorders[currentRecordCount] = Recorder(_admin, _maximalLeafCount);
@@ -62,12 +69,36 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         merkleTreeRecorderCount = currentRecordCount.add(1);
     }
 
-    // TODO: Pass report here, verify signatures then record merkle tree
     function recordMerkleTree(
+        bytes calldata _report
+    ) external override {
+
+        uint256 recorderId;
+        uint256 lastLeafIndex;
+        bytes32 merkleTreeRoot;
+
+        bool isReportValid;
+        bytes memory reportData;
+        (isReportValid, reportData) = reportValidator.validateReport(_report);
+        require(isReportValid, "Report validation failed.");
+
+        (
+        recorderId,
+        lastLeafIndex,
+        merkleTreeRoot
+        ) = abi.decode(
+            reportData,
+            (uint256, uint256, bytes32)
+        );
+
+        _recordMerkleTree(recorderId, lastLeafIndex, merkleTreeRoot);
+    }
+
+    function _recordMerkleTree(
         uint256 _recorderId,
         uint256 _lastLeafIndex,
         bytes32 _merkleTreeRoot
-    ) external override {
+    ) internal {
         Recorder memory recorder = recorders[_recorderId];
         require(recorder.admin == msg.sender, "not admin");
         uint256 currentLeafIndex = lastRecordedLeafIndex[_recorderId];
@@ -83,9 +114,7 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
         uint256 newRecordedLeafLocated =
             _lastLeafIndex.div(recorder.maximalLeafCount);
         uint256 indexShouldBeCount =
-            currentSatisfiedTreeCount.add(1).mul(recorder.maximalLeafCount).sub(
-                1
-            );
+        currentSatisfiedTreeCount.add(1).mul(recorder.maximalLeafCount).sub(1);
         if (newRecordedLeafLocated > currentSatisfiedTreeCount) {
             require(
                 currentLeafIndex == indexShouldBeCount,
@@ -117,37 +146,37 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
     }
 
     function getLeafLocatedMerkleTree(uint256 _recorderId, uint256 _leafIndex)
-        public
-        view
-        merkleTreeGenerated(_recorderId)
-        returns (MerkleTree memory)
+    public
+    view
+    merkleTreeGenerated(_recorderId)
+    returns (MerkleTree memory)
     {
         uint256 lastRecordLeafIndex = lastRecordedLeafIndex[_recorderId].sub(1);
         require(lastRecordLeafIndex >= _leafIndex, "not recorded yet");
         return
-            getMerkleTreeByDefaultIndex(
-                _recorderId,
-                _leafIndex,
-                lastRecordLeafIndex,
-                false
-            );
+        getMerkleTreeByDefaultIndex(
+            _recorderId,
+            _leafIndex,
+            lastRecordLeafIndex,
+            false
+        );
     }
 
     function getMerkleTree(uint256 _recorderId, uint256 _leafIndex)
-        public
-        view
-        merkleTreeGenerated(_recorderId)
-        returns (MerkleTree memory)
+    public
+    view
+    merkleTreeGenerated(_recorderId)
+    returns (MerkleTree memory)
     {
         uint256 lastRecordLeafIndex = lastRecordedLeafIndex[_recorderId].sub(1);
         require(lastRecordLeafIndex >= _leafIndex, "not recorded yet");
         return
-            getMerkleTreeByDefaultIndex(
-                _recorderId,
-                _leafIndex,
-                _leafIndex,
-                true
-            );
+        getMerkleTreeByDefaultIndex(
+            _recorderId,
+            _leafIndex,
+            _leafIndex,
+            true
+        );
     }
 
     function merkleProof(
@@ -164,7 +193,7 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
             return false;
         }
         MerkleTree memory merkleTree =
-            getMerkleTree(_recorderId, _lastLeafIndex);
+        getMerkleTree(_recorderId, _lastLeafIndex);
         for (uint256 i = 0; i < _merkelTreePath.length; i++) {
             if (_isLeftNode[i]) {
                 _leafHash = sha256(abi.encode(_merkelTreePath[i], _leafHash));
@@ -176,10 +205,10 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
     }
 
     function getLastRecordedLeafIndex(uint256 _recorderId)
-        external
-        view
-        merkleTreeGenerated(_recorderId)
-        returns (uint256)
+    external
+    view
+    merkleTreeGenerated(_recorderId)
+    returns (uint256)
     {
         return lastRecordedLeafIndex[_recorderId].sub(1);
     }
@@ -192,18 +221,18 @@ contract MerkleTreeRecorder is IMerkleTreeValidate, IRecordMerkleTree, Ownable {
     ) private view returns (MerkleTree memory) {
         Recorder memory recorder = recorders[_recorderId];
         uint256 satisfiedMerkleTreeIndex =
-            _leafIndex.div(recorder.maximalLeafCount);
+        _leafIndex.div(recorder.maximalLeafCount);
         if (satisfiedMerkleTreeIndex < satisfiedMerkleTreeCount[_recorderId]) {
             return satisfiedMerkleTrees[_recorderId][satisfiedMerkleTreeIndex];
         }
         MerkleTree memory merkleTree =
-            unSatisfiedMerkleTrees[_recorderId][
-                _defaultIndex.mod(recorder.maximalLeafCount)
-            ];
+        unSatisfiedMerkleTrees[_recorderId][
+        _defaultIndex.mod(recorder.maximalLeafCount)
+        ];
         if (_isCheck) {
             require(
                 merkleTree.lastLeafIndex == _defaultIndex &&
-                    merkleTree.merkleTreeRoot != invalidHash,
+                merkleTree.merkleTreeRoot != invalidHash,
                 "tree not recorded"
             );
         }
